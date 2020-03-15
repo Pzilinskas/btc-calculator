@@ -4,8 +4,6 @@ import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
-import Button from '@material-ui/core/Button';
-import Grid from "@material-ui/core/Grid";
 
 const useStyles = makeStyles(theme => ({
     button: {
@@ -20,20 +18,12 @@ const useStyles = makeStyles(theme => ({
 
 export default function CurrencyDropdown(props) {
     const classes = useStyles();
-    const [currency, setCurrency] = React.useState('');
     const [open, setOpen] = React.useState(false);
 
-    const handleChange = event => {
-        setCurrency(event.target.value);
-    };
+    function handleToggle() {
+        setOpen(!open);
+    }
 
-    const handleClose = () => {
-        setOpen(false);
-    };
-
-    const handleOpen = () => {
-        setOpen(true);
-    };
 
     return (
         <div>
@@ -43,13 +33,12 @@ export default function CurrencyDropdown(props) {
                     labelId="demo-controlled-open-select-label"
                     id="demo-controlled-open-select"
                     open={open}
-                    onClose={handleClose}
-                    onOpen={handleOpen}
-                    value={currency}
-                    onChange={handleChange}
+                    onClose={handleToggle}
+                    onOpen={handleToggle}
+                    onChange={props.handleChange}
                 >
-                    {props.currencies.map((currency, index) =>
-                        <MenuItem value={currency}>{currency}</MenuItem>
+                    {props.currentCurrencies.map((currency, index) =>
+                        <MenuItem key={index} value={currency}>{currency}</MenuItem>
                         )
                     }
                 </Select>

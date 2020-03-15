@@ -24,7 +24,6 @@ const useStyles = makeStyles({
 });
 
 export default function CurrencyField(props) {
-    const [showCurrency, setShowCurrency] = useState(true);
 
     const classes = useStyles();
 
@@ -40,7 +39,7 @@ export default function CurrencyField(props) {
 
             </CardContent>
             <CardActions>
-                <Button onClick={() => setShowCurrency(false)} size="small">Remove</Button>
+                <Button onClick={() => props.onClickShowCurrency(props.currencyLabel)} size="small">Remove</Button>
             </CardActions>
         </Card>
     );

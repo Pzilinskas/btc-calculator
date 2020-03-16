@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Card from '@material-ui/core/Card';
 import CardActions from '@material-ui/core/CardActions';
@@ -31,15 +31,15 @@ export default function CurrencyField(props) {
         <Card className={classes.root} variant="outlined">
             <CardContent>
                 <Typography className={classes.title} color="textSecondary" gutterBottom>
-                    amount BTC is:
+                    {props.amount} BTC is:
                 </Typography>
                 <Typography variant="h5" component="h2">
-                    {props.currencyLabel} - value
+                    {props.btcConversion.label} - {props.btcConversion.amount}
                 </Typography>
 
             </CardContent>
             <CardActions>
-                <Button onClick={() => props.onClickShowCurrency(props.currencyLabel)} size="small">Remove</Button>
+                <Button onClick={() => props.onClickShowCurrency(props.btcConversion.label)} size="small">Remove</Button>
             </CardActions>
         </Card>
     );

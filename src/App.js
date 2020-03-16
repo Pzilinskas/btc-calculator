@@ -5,11 +5,11 @@ import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 import Button from '@material-ui/core/Button';
-import Container from '@material-ui/core/Container';
 import TextField from '@material-ui/core/TextField';
 
 import CurrencyField from './components/currencyField/currencyField';
 import CurrencyDropdown from "./components/currencyDropdown/currencyDropdown";
+import useInterval from './utils';
 
 import './App.css';
 
@@ -28,8 +28,8 @@ const useStyles = makeStyles(theme => ({
 
 export default function App() {
   const [currentPrice, setCurrentPrice] = useState();
-  const [visibleCurrencies, setVisibleCurrencies] = useState(['EUR', 'GBP', 'USD']);
-  const [amountToConvert, setAmountToConvert] = useState(1);
+  const [visibleCurrencies, setVisibleCurrencies] = useState(['EUR', 'GBP', 'USD' ]);
+  const [amountToConvert, setAmountToConvert] = useState();
   const [conversion, setConversion] = useState();
   const [hasError, setErrors] = useState(false);
   const classes = useStyles();
@@ -39,23 +39,34 @@ export default function App() {
     const res = await fetch('https://api.coindesk.com/v1/bpi/currentprice.json');
     res
         .json()
-        .then(res => setCurrentPrice(res.bpi))
+        .then(res =>  setCurrentPrice(res.bpi))
         .catch(err => setErrors(err));
   }
 
   function calculateConversion (amount) {
     let calculation = [];
     Object.entries(currentPrice).forEach(([currency, val]) => {
-       calculation.push({[currency]: val.rate_float * amount});
-      setConversion(calculation)
+     const calculatedValue = val.rate_float * amount;
+       calculation.push({
+         label: val.code,
+         amount: new Intl.NumberFormat(undefined, {style: 'currency', currency: val.code}).format(calculatedValue),
+       });
+      setConversion(calculation);
     });
   }
 
   useEffect(() => {
     fetchBtc();
-
       }, []
   );
+
+  useInterval(() => {
+    if(amountToConvert){
+      fetchBtc().then(() => {
+        calculateConversion(amountToConvert)
+      });
+    }
+  }, 1000 * 60);
 
   function handleSelectChange(event) {
     setVisibleCurrencies([...visibleCurrencies, event.target.value]);
@@ -65,15 +76,20 @@ export default function App() {
     setVisibleCurrencies(visibleCurrencies.filter(item => item !== currency));
   }
 
-
   function handleSubmit(event) {
       event.preventDefault();
       setAmountToConvert(event.target.amount.value);
       calculateConversion(event.target.amount.value);
-
   }
 
-
+  const currencyFields =  conversion && conversion.filter(({ label }) =>
+        visibleCurrencies.includes(label)).map((values, index) => {
+         return (<Grid item xs={12} md={4} justify="center" alignItems="center" spacing={2}>
+          <CurrencyField key={index} amount={amountToConvert} btcConversion={values}
+                         onClickShowCurrency={removeCurrency}/>
+        </Grid>)
+      }
+   );
 
   return (
       <Grid container className={classes.root} spacing={2} >
@@ -84,8 +100,7 @@ export default function App() {
             </Typography>
           </Toolbar>
         </AppBar>
-        <Container >
-          <Grid item xs={12}>
+          <Grid item xs={12} >
             <Grid container justify="center" alignItems="center" spacing={2}>
               <form onSubmit={handleSubmit}>
                 <TextField
@@ -97,6 +112,7 @@ export default function App() {
                     label="Enter amount"
                     name="amount"
                     autoFocus
+                    type="number"
                 />
                   <Button type="submit" variant="contained" color="primary">
                     Submit
@@ -104,19 +120,14 @@ export default function App() {
               </form>
             </Grid>
           </Grid>
-          {availableCurrencies.length &&
-          <Grid container spacing={2}>
-            <CurrencyDropdown currentCurrencies={availableCurrencies} handleChange={handleSelectChange}/>
+          {availableCurrencies.length > 0 &&
+          <Grid item xs={12} >
+            <Grid spacing={2}>
+              <CurrencyDropdown currentCurrencies={availableCurrencies} handleChange={handleSelectChange}/>
+            </Grid>
           </Grid>
           }
-          <Grid container spacing={2}>
-            {visibleCurrencies.map((currency, index) =>
-              <Grid item xs={12} md={12} justify="center" alignItems="center" spacing={2}>
-              <CurrencyField currencyLabel={currency} key={index} btcConversion={conversion}  onClickShowCurrency={removeCurrency} />
-              </Grid>
-            )}
-          </Grid>
-        </Container>
+          {currencyFields}
       </Grid>
   );
 }
